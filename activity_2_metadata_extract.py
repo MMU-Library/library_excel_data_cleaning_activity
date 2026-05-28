@@ -3,8 +3,7 @@ import pandas as pd
 
 
 #import the metadata from excel and assign it to the variable called metadata_extract as a data frame(table)
-metadata_extract = pd.read_excel('metadata_extract_20260127.xlsx')
-
+metadata_extract = pd.read_excel(r"C:\Users\46071956\Downloads\library_data_cleansing_activity_1\Inputs\metadata_extract_20260127.xlsx")
 
 
 #display head of metadata_extract to see the first few lines
@@ -38,9 +37,10 @@ print(len(filtered_data))
 
 
 #export it back into an excel spreadsheet
-filtered_data.to_excel:("metadata_extract_20260127_filtered_activity_two_cleaned.xlsx")
 
+print("saving new file")
 
 filtered_data.to_excel(r"C:\Users\46071956\Downloads\library_data_cleansing_activity_1\metadata_extract_20260127_filtered_activity_two.xlsx", index=False, engine="openpyxl")
 
 print("complete")
+
