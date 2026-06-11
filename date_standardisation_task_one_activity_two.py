@@ -8,7 +8,7 @@ from datetime import datetime
 
 
 #---------------import file and assign it to variable as a data frame--------------------
-df_filtered=metadata_extract=pd.read_excel(r"C:\Users\46071956\Downloads\library_data_cleansing_activity_1\Outputs\metadata_extract_20260127_filtered_task_one_activity_one.xlsx")
+df_filtered=metadata_extract=pd.read_excel(r"C:\Users\46071956\Downloads\library_excel_data_cleaning_scripts\Outputs\metadata_extract_20260127_filtered_task_one_activity_one.xlsx")
 
 
 
@@ -70,6 +70,6 @@ print("Date parsing complete. Errors logged to {log_file}")
 
 #------------save new file with standardised dates-------------------
 
-output_file = r"C:\Users\46071956\Downloads\library_data_cleansing_activity_1\Outputs\metadata_extract_20260127_standardised_dates_activity_one_task_two.xlsx"
+output_file = r"C:\Users\46071956\Downloads\library_excel_data_cleaning_scripts\Outputs\metadata_extract_20260127_standardised_dates_activity_one_task_two.xlsx"
 df_filtered.to_excel(output_file, index=False, engine="openpyxl")
 print(f"Standardised dates saved to {output_file}")   

@@ -3,7 +3,7 @@ import pandas as pd
 
 
 #---------------import file and assign it to variable as a data frame--------------------
-metadata_extract = pd.read_excel(r"C:\Users\46071956\Downloads\library_data_cleansing_activity_1\Inputs\metadata_extract_20260127.xlsx")
+metadata_extract = pd.read_excel(r"C:\Users\46071956\Downloads\library_excel_data_cleaning_scripts\Inputs\metadata_extract_20260127.xlsx")
 
 
 
@@ -32,7 +32,7 @@ print(len(filtered_data))
 
 print("saving new file")
 
-filtered_data.to_excel(r"C:\Users\46071956\Downloads\library_data_cleansing_activity_1\Outputs\metadata_extract_20260127_filtered_task_two_activity_one.xlsx", index=False, engine="openpyxl")
+filtered_data.to_excel(r"C:\Users\46071956\Downloads\library_excel_data_cleaning_scripts\Outputs\metadata_extract_20260127_filtered_task_two_activity_one.xlsx", index=False, engine="openpyxl")
 
 print("complete")
 
