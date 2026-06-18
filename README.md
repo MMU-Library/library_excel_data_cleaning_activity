@@ -30,31 +30,40 @@ Alternatively make a ‘review index’, marking author entries (and their relat
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-System Requirements/Software versions: 
-Python
+### **System Requirements/Software versions:**
+Python 3.14.5
 Pandas
 
 
 
 
-### **clean_eprints.py:**
+
+### **value_filtering_task_one_activity_one.py:**
 -filters metadata to keep "conference_item", "exhibition", and "performance" records.
 main steps involved:
 -Read Excel -> filter "e_prints_type" using the Pandas dataframe isin() method -> export to Outputs -> New Excel file created. 
 
 
 
-### **standardisation_of_dates.py**
+### **date_standardisation_task_one_activity_two.py**
 -standardises "event_dates_start" and "event_dates_end" to DD-MM-YYYY. 
 main steps involved: 
 -Read filtered Excel -> apply standardise_date using pd.to_datetime() -> export to Outputs -> New Excel File created. 
 
 
 
-### **activity_2_metadata_extract.py:** 
+### **value_filtering_task_two_activity_one.py:** 
 -filters metadata to keep only "article" and "conference_item" records. 
 main steps involved:
 -Read Excel -> filter "eprints_type" with isin() -> export to Outputs -> New Excel file created. 
+
+
+
+### **publisher_name_standardisation_task_two_activity_one.py**
+-filters metadata to standardise publisher names through fuzzy matching.
+main steps involved:
+
+
 
 
 
