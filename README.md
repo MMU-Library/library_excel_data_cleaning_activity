@@ -60,8 +60,20 @@ main steps involved:
 
 
 ### **publisher_name_standardisation_task_two_activity_one.py**
--filters metadata to standardise publisher names through fuzzy matching.
+-Standardises publisher names by combining hard-coded canonical mappings for major publishers, token-aware fuzzy matching, grouped comparisons, frequency-based boosting, and manual review support.
+
 main steps involved:
+-Read Excel metadata into a Pandas dataframe.
+-Apply hard-coded canonical mapping to obvious major publishers.
+-Filter to keep only "article" and "conference_item" records.
+-Build frequency counts for publisher variants.
+-Group publisher names by first meaningful token.
+-Compare names within each group using token-based fuzzy similarity.
+-Auto-merge high-confidence matches.
+-Send uncertain matches to a review file.
+-Build connected clusters from merged pairs.
+-Apply cluster canonical names back to the full dataset.
+-Export outputs to the Outputs folder, including a cleaned Excel file, a review index, and a cluster summary.
 
 
 
