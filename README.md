@@ -30,9 +30,9 @@ Alternatively make a ‘review index’, marking author entries (and their relat
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### **System Requirements/Software versions:**
+### **System Requirements/Software/packages versions:**
 Python 3.14.5
-Pandas
+
 
 
 
