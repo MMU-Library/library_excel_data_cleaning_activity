@@ -1,0 +1,12 @@
+# pyproject.toml
+[project]
+name = "metadata-cleanup"
+version = "1.0.0"
+description = "Excel metadata cleaning pipeline for MMU Research Repository"
+authors = [{name = "MMU Library"}]
+dependencies = [
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "rapidfuzz>=3.0.0",
+    "streamlit>=1.28.0",
+]

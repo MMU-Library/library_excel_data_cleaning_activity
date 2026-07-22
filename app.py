@@ -1,428 +1,473 @@
 #!/usr/bin/env python3
-
 """
-
 app.py – Streamlit UI for the Open Research Excel Data Cleansing Pipeline.
- 
-Runs date standardisation and publisher name standardisation sequentially,
 
-then offers the final cleaned file for download.
- 
+This UI orchestrates three data‑cleaning tasks:
+  1. Date standardisation – converts event dates to DD‑MM‑YYYY.
+  2. Publisher name standardisation – merges variant publisher names.
+  3. Author name standardisation – standardises author names.
+
 Usage:
-
     streamlit run app.py
-
 """
- 
+
 import os
-
 import subprocess
-
 import sys
-
 import tempfile
-
 from pathlib import Path
- 
+
 import streamlit as st
- 
-# ------------------------------------------------------------
 
+# ------------------------------------------------------------
 # Determine where the scripts are (relative to this file)
-
 # ------------------------------------------------------------
-
 BASE_DIR = Path(__file__).parent.absolute()
- 
-# Student's scripts are in the root directory (not in a 'scripts' subfolder)
 
 # Map friendly names to actual script filenames
-
 SCRIPT_MAP = {
-
     "dates": BASE_DIR / "date_standardisation_task_one_activity_two.py",
-
     "publishers": BASE_DIR / "publisher_name_standardisation_task_two_activity_one.py",
-
+    "authors": BASE_DIR / "author_name_standardisation_task_three_activity_one.py",
 }
- 
-# Check if scripts exist
 
+# Check which scripts exist
 for name, path in SCRIPT_MAP.items():
-
     if not path.exists():
-
-        st.error(f"❌ {name} script not found at: {path}")
-
-        st.info(
-
-            f"Please ensure '{path.name}' is in the same folder as this app."
-
-        )
-
-        st.stop()
- 
-# ------------------------------------------------------------
-
-# Streamlit UI
+        st.sidebar.warning(f"⚠️ {name} script not found: {path.name}")
 
 # ------------------------------------------------------------
-
-st.set_page_config(
-
-    page_title="Open Research Data Cleansing",
-
-    page_icon="📊",
-
-    layout="centered",
-
-)
- 
-st.title("📊 Open Research Excel Data Cleansing")
-
-st.markdown(
-
-    """
-
-    Upload your `metadata_extract.xlsx` file, and this tool will:
-
-    1. **Standardise event dates** – for conference items, exhibitions, and performances
-
-    2. **Standardise publisher names** – for articles and conference papers
-
-    3. **Give you the final cleaned file** – preserving all original styling
-
-    """
-
-)
- 
-# ------------------------------------------------------------
-
 # Session state initialisation
-
 # ------------------------------------------------------------
-
-if "processed" not in st.session_state:
-
-    st.session_state.processed = False
-
+if "processed_metadata" not in st.session_state:
+    st.session_state.processed_metadata = False
+if "processed_authors" not in st.session_state:
+    st.session_state.processed_authors = False
 if "final_data" not in st.session_state:
-
     st.session_state.final_data = None
-
 if "review_data" not in st.session_state:
-
     st.session_state.review_data = None
- 
+if "cluster_data" not in st.session_state:
+    st.session_state.cluster_data = None
+if "authors_data" not in st.session_state:
+    st.session_state.authors_data = None
+
+
 # ------------------------------------------------------------
+# Helper function to run subprocesses with live output
+# ------------------------------------------------------------
+def run_with_live_output(cmd, placeholder, log_prefix=""):
+    """Run a subprocess and stream its stdout/stderr to a Streamlit placeholder."""
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        universal_newlines=True,
+    )
+    output_lines = []
+    for line in iter(process.stdout.readline, ""):
+        if line:
+            output_lines.append(line)
+            # Keep only last 50 lines to avoid slowing down the UI
+            if len(output_lines) > 50:
+                output_lines = output_lines[-50:]
+            placeholder.text(f"{log_prefix}\n" + "".join(output_lines))
+    process.wait()
+    return process.returncode, "".join(output_lines)
 
-# File uploaders
 
 # ------------------------------------------------------------
-
-uploaded_file = st.file_uploader(
-
-    "📁 Choose your input Excel file",
-
-    type=["xlsx"],
-
-    key="input_file",
-
-    help="Upload the original metadata extract file (metadata_extract_*.xlsx).",
-
+# Main UI
+# ------------------------------------------------------------
+st.set_page_config(
+    page_title="Open Research Data Cleansing",
+    page_icon="📊",
+    layout="centered",
 )
- 
-override_file = st.file_uploader(
 
-    "📋 Optional: Publisher override file (CSV/Excel)",
-
-    type=["csv", "xlsx"],
-
-    key="override_file",
-
-    help=(
-
-        "If you have manual overrides for publisher names, upload them here. "
-
-        "Columns should be: publisher_1, publisher_2, action"
-
-    ),
-
+st.title("📊 Open Research Excel Data Cleansing")
+st.markdown(
+    """
+    This tool cleans metadata exports for the Research Repository.
+    Select a tab below to get started.
+    """
 )
- 
-# ------------------------------------------------------------
-
-# Run button and pipeline execution
 
 # ------------------------------------------------------------
+# Create two tabs – one for each workflow
+# ------------------------------------------------------------
+tab_metadata, tab_authors = st.tabs(
+    ["📁 Metadata Cleanup (Dates + Publishers)", "✍️ Author Name Cleanup"]
+)
 
-if uploaded_file is not None:
+# ================================================================
+# TAB 1: Metadata Cleanup (Dates + Publishers)
+# ================================================================
+with tab_metadata:
+    st.markdown(
+        """
+        Upload your **metadata extract file** and this will:
 
-    if st.button("🚀 Run Full Cleanup Pipeline", type="primary"):
+        1. **Standardise event dates** – for conference items, exhibitions, and performances.
+        2. **Standardise publisher names** – for articles and conference papers.
+        """
+    )
 
-        # Reset session state
+    uploaded_metadata = st.file_uploader(
+        "Choose your metadata Excel file",
+        type=["xlsx"],
+        key="metadata_file",
+        help="Upload the main metadata extract file (metadata_extract_*.xlsx).",
+    )
 
-        st.session_state.processed = False
+    override_file = st.file_uploader(
+        "Optional: Publisher override file (CSV/Excel)",
+        type=["csv", "xlsx"],
+        key="override_file",
+        help="If you have manual overrides for publisher names, upload them here.",
+    )
 
+    run_metadata = st.button(
+        "🚀 Run Metadata Cleanup",
+        type="primary",
+        use_container_width=True,
+        disabled=uploaded_metadata is None,
+    )
+
+    if run_metadata and uploaded_metadata is not None:
+        st.session_state.processed_metadata = False
         st.session_state.final_data = None
-
         st.session_state.review_data = None
- 
+        st.session_state.cluster_data = None
+
+        progress_bar = st.progress(0, text="Initialising...")
+        status_text = st.empty()
+        log_placeholder = st.empty()  # For live logs
+
         try:
-
-            # ------------------------------------------------------------
-
-            # 1. Save uploaded files to temporary locations
-
-            # ------------------------------------------------------------
-
             with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_input:
-
-                tmp_input.write(uploaded_file.getbuffer())
-
+                tmp_input.write(uploaded_metadata.getbuffer())
                 input_path = tmp_input.name
- 
+
             override_path = None
-
             if override_file is not None:
-
                 suffix = ".xlsx" if override_file.name.endswith(".xlsx") else ".csv"
-
-                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_override:
-
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=suffix
+                ) as tmp_override:
                     tmp_override.write(override_file.getbuffer())
-
                     override_path = tmp_override.name
- 
-            # Define output paths
 
-            interim_path = os.path.join(tempfile.gettempdir(), "interim_dates_cleaned.xlsx")
-
+            interim_path = os.path.join(
+                tempfile.gettempdir(), "interim_dates_cleaned.xlsx"
+            )
             final_path = os.path.join(tempfile.gettempdir(), "final_cleaned.xlsx")
- 
-            # Ensure outputs directory exists (for logs and review files)
 
             (BASE_DIR / "Outputs").mkdir(exist_ok=True)
-
             review_path = str(BASE_DIR / "Outputs" / "publisher_review_index.xlsx")
- 
-            # ------------------------------------------------------------
+            cluster_path = str(BASE_DIR / "Outputs" / "publisher_cluster_summary.csv")
 
-            # 2. Run date standardisation
+            # --------------------------------------------------------
+            # Step 1: Date standardisation – with live logs
+            # --------------------------------------------------------
+            progress_bar.progress(20, text="Step 1/2: Standardising event dates...")
+            status_text.info("⏳ Processing date fields...")
 
-            # ------------------------------------------------------------
-
-            st.info("⏳ Step 1/2: Standardising event dates...")
-
-            progress_placeholder = st.empty()
-
-            progress_placeholder.text("Running date_standardisation_task_one_activity_two.py...")
- 
             cmd1 = [
-
                 sys.executable,
-
                 str(SCRIPT_MAP["dates"]),
-
-                "--input", input_path,
-
-                "--output", interim_path,
-
+                "--input",
+                input_path,
+                "--output",
+                interim_path,
             ]
 
-            result1 = subprocess.run(cmd1, capture_output=True, text=True)
- 
-            if result1.returncode != 0:
+            returncode1, _ = run_with_live_output(cmd1, log_placeholder, "📅 Date log:")
 
-                st.error(f"❌ Date standardisation failed:\n{result1.stderr}")
-
+            if returncode1 != 0:
+                st.error(f"❌ Date standardisation failed with code {returncode1}")
                 st.stop()
 
-            else:
+            progress_bar.progress(50, text="Step 1 complete. Dates standardised.")
+            st.success("✅ Step 1 complete: Dates standardised.")
+            log_placeholder.empty()  # Clear log after step
 
-                st.success("✅ Step 1 complete: Dates standardised.")
+            # --------------------------------------------------------
+            # Step 2: Publisher name standardisation – with live logs
+            # --------------------------------------------------------
+            progress_bar.progress(60, text="Step 2/2: Standardising publisher names...")
+            status_text.info("⏳ Analysing publisher names...")
 
-                with st.expander("📋 View task output (last 500 chars)"):
-
-                    st.text(result1.stdout[-500:] if result1.stdout else "No output")
- 
-            # ------------------------------------------------------------
-
-            # 3. Run publisher name standardisation
-
-            # ------------------------------------------------------------
-
-            st.info("⏳ Step 2/2: Standardising publisher names...")
-
-            progress_placeholder.text("Running publisher_name_standardisation_task_two_activity_one.py...")
- 
             cmd2 = [
-
                 sys.executable,
-
                 str(SCRIPT_MAP["publishers"]),
-
-                "--input", interim_path,
-
-                "--output", final_path,
-
-                "--review", review_path,
-
+                "--input",
+                interim_path,
+                "--output",
+                final_path,
+                "--review",
+                review_path,
+                "--clusters",
+                cluster_path,
             ]
-
             if override_path:
-
                 cmd2.extend(["--override", override_path])
- 
-            result2 = subprocess.run(cmd2, capture_output=True, text=True)
- 
-            if result2.returncode != 0:
 
-                st.error(f"❌ Publisher standardisation failed:\n{result2.stderr}")
+            returncode2, _ = run_with_live_output(
+                cmd2, log_placeholder, "📚 Publisher log:"
+            )
 
+            if returncode2 != 0:
+                st.error(f"❌ Publisher standardisation failed with code {returncode2}")
                 st.stop()
 
-            else:
+            progress_bar.progress(90, text="Step 2 complete. Publishers standardised.")
+            st.success("✅ Step 2 complete: Publishers standardised.")
+            log_placeholder.empty()
 
-                st.success("✅ Step 2 complete: Publishers standardised.")
-
-                with st.expander("📋 View task output (last 500 chars)"):
-
-                    st.text(result2.stdout[-500:] if result2.stdout else "No output")
- 
-            # ------------------------------------------------------------
-
-            # 4. Store results in session state
-
-            # ------------------------------------------------------------
-
+            # --------------------------------------------------------
+            # Store results
+            # --------------------------------------------------------
             with open(final_path, "rb") as f:
-
                 st.session_state.final_data = f.read()
- 
+
             if Path(review_path).exists():
-
                 with open(review_path, "rb") as f:
-
                     st.session_state.review_data = f.read()
 
-            else:
+            if Path(cluster_path).exists():
+                with open(cluster_path, "rb") as f:
+                    st.session_state.cluster_data = f.read()
 
-                st.session_state.review_data = None
- 
-            st.session_state.processed = True
- 
-            # Clean up temp files
+            st.session_state.processed_metadata = True
 
             os.unlink(input_path)
-
             if override_path and os.path.exists(override_path):
-
                 os.unlink(override_path)
- 
+
+            progress_bar.progress(100, text="Metadata cleanup complete!")
+            status_text.empty()
+
             st.balloons()
+            st.success("🎉 Metadata cleanup completed successfully!")
 
-            st.success(
-
-                "🎉 Pipeline completed successfully! You can now download the cleaned files below."
-
-            )
- 
         except Exception as e:
-
             st.error(f"An unexpected error occurred: {e}")
-
             st.stop()
- 
-    # ------------------------------------------------------------
 
-    # 5. Show download buttons if processing is complete
-
-    # ------------------------------------------------------------
-
-    if st.session_state.processed:
-
+    if st.session_state.processed_metadata:
         st.divider()
-
         st.subheader("📥 Downloads")
- 
-        col1, col2 = st.columns(2)
- 
+
+        col1, col2, col3 = st.columns(3)
+
         with col1:
-
             if st.session_state.final_data is not None:
-
                 st.download_button(
-
-                    label="📥 Download Final Cleaned File",
-
+                    label="📥 Final Cleaned Metadata",
                     data=st.session_state.final_data,
-
                     file_name="metadata_final_cleaned.xlsx",
-
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
                     use_container_width=True,
-
                 )
 
-            else:
-
-                st.warning("Final file data not available.")
- 
         with col2:
-
             if st.session_state.review_data is not None:
-
                 st.download_button(
-
-                    label="📋 Download Publisher Review Index",
-
+                    label="📋 Publisher Review Index",
                     data=st.session_state.review_data,
-
                     file_name="publisher_review_index.xlsx",
-
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
                     use_container_width=True,
-
                 )
 
-            else:
+        with col3:
+            if st.session_state.cluster_data is not None:
+                st.download_button(
+                    label="📊 Cluster Summary (CSV)",
+                    data=st.session_state.cluster_data,
+                    file_name="publisher_cluster_summary.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
 
-                st.info("No review index generated (no uncertain publisher pairs).")
- 
-        # Reset button
-
-        if st.button("🔄 Start Over (clear results)", use_container_width=True):
-
-            st.session_state.processed = False
-
-            st.session_state.final_data = None
-
-            st.session_state.review_data = None
-
+        if st.button(
+            "🔄 Clear Results", use_container_width=True, key="clear_metadata"
+        ):
+            for key in [
+                "processed_metadata",
+                "final_data",
+                "review_data",
+                "cluster_data",
+            ]:
+                if key in st.session_state:
+                    st.session_state[key] = (
+                        False if key == "processed_metadata" else None
+                    )
             st.rerun()
- 
-else:
 
-    st.info("👆 Please upload your metadata file to begin.")
- 
+# ================================================================
+# TAB 2: Author Name Cleanup
+# ================================================================
+with tab_authors:
+    st.markdown(
+        """
+        Upload your **authors file** and this will standardise author names.
+
+        The tool will analyse `first_name` and `last_name` columns, using the `id`
+        (university ID) where available to validate duplicates.
+        """
+    )
+
+    uploaded_authors = st.file_uploader(
+        "Choose your authors Excel file",
+        type=["xlsx"],
+        key="authors_file",
+        help="Upload the authors file (authors_*.xlsx).",
+    )
+
+    authors_script_exists = SCRIPT_MAP["authors"].exists()
+
+    if not authors_script_exists:
+        st.warning(
+            "⚠️ The author standardisation script is not yet available. "
+            "This feature will be enabled when the script is added to the project."
+        )
+
+    run_authors = st.button(
+        "✍️ Run Author Name Standardisation",
+        type="primary",
+        use_container_width=True,
+        disabled=uploaded_authors is None or not authors_script_exists,
+    )
+
+    if run_authors and uploaded_authors is not None:
+        st.session_state.processed_authors = False
+        st.session_state.authors_data = None
+
+        authors_progress = st.progress(0, text="Processing authors...")
+        authors_status = st.empty()
+        log_placeholder = st.empty()
+
+        try:
+            import time  # import here for small delay
+
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".xlsx"
+            ) as tmp_authors:
+                tmp_authors.write(uploaded_authors.getbuffer())
+                authors_input = tmp_authors.name
+
+            authors_output = os.path.join(tempfile.gettempdir(), "authors_cleaned.xlsx")
+
+            (BASE_DIR / "Outputs").mkdir(exist_ok=True)
+            review_author_path = str(BASE_DIR / "Outputs" / "author_review_index.xlsx")
+            cluster_author_path = str(
+                BASE_DIR / "Outputs" / "author_cluster_summary.csv"
+            )
+
+            authors_progress.progress(30, text="Analysing author names...")
+            authors_status.info("⏳ Standardising author names...")
+
+            cmd3 = [
+                sys.executable,
+                str(SCRIPT_MAP["authors"]),
+                "--input",
+                authors_input,
+                "--output",
+                authors_output,
+                "--review",
+                review_author_path,
+                "--clusters",
+                cluster_author_path,
+            ]
+
+            returncode3, _ = run_with_live_output(
+                cmd3, log_placeholder, "📋 Author log:"
+            )
+
+            if returncode3 != 0:
+                st.error(f"❌ Author standardisation failed with code {returncode3}")
+                st.stop()
+
+            authors_progress.progress(90, text="Authors processed.")
+            st.success("✅ Author standardisation complete.")
+
+            # --- Small delay to ensure file is flushed ---
+            time.sleep(1)
+
+            # --- Check for output file ---
+            output_paths_to_try = [
+                Path(authors_output),
+                BASE_DIR / "Outputs" / "authors_cleaned.xlsx",
+                Path(tempfile.gettempdir()) / "authors_cleaned.xlsx",
+            ]
+
+            found_path = None
+            for p in output_paths_to_try:
+                if p.exists():
+                    found_path = p
+                    break
+
+            if found_path:
+                with open(found_path, "rb") as f:
+                    st.session_state.authors_data = f.read()
+                st.session_state.processed_authors = True
+                st.success(f"✅ Output file loaded from: {found_path}")
+            else:
+                st.error("❌ Output file not found. Check the logs above for errors.")
+                st.info(f"Expected location: {authors_output}")
+                # Show contents of temp directory for debugging
+                temp_dir = Path(tempfile.gettempdir())
+                xlsx_files = list(temp_dir.glob("*.xlsx"))
+                if xlsx_files:
+                    st.info(
+                        f"Found these .xlsx files in temp: {[f.name for f in xlsx_files]}"
+                    )
+
+            os.unlink(authors_input)
+
+            authors_progress.progress(100, text="Author cleanup complete!")
+            authors_status.empty()
+            log_placeholder.empty()
+
+            if st.session_state.processed_authors:
+                st.balloons()
+                st.success("🎉 Author standardisation completed successfully!")
+
+        except Exception as e:
+            st.error(f"An unexpected error occurred: {e}")
+            st.stop()
+
+    if st.session_state.processed_authors:
+        st.divider()
+        st.subheader("📥 Download")
+
+        if st.session_state.authors_data is not None:
+            st.download_button(
+                label="📝 Cleaned Authors File",
+                data=st.session_state.authors_data,
+                file_name="authors_cleaned.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+            )
+        else:
+            st.warning("No data available for download.")
+
+        if st.button("🔄 Clear Results", use_container_width=True, key="clear_authors"):
+            st.session_state.processed_authors = False
+            st.session_state.authors_data = None
+            st.rerun()
+
 # ------------------------------------------------------------
-
-# Footer
-
+# Footer (shown at bottom of both tabs)
 # ------------------------------------------------------------
-
 st.divider()
-
 st.caption(
-
     "Built for the MMU Research Repository data cleaning project. "
-
-    "Scripts: date_standardisation_task_one_activity_two.py and "
-
-    "publisher_name_standardisation_task_two_activity_one.py."
-
+    "Scripts: date_standardisation_task_one_activity_two.py, "
+    "publisher_name_standardisation_task_two_activity_one.py, "
+    "and author_name_standardisation_task_three_activity_one.py."
 )
- 

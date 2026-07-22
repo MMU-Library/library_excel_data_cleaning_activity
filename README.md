@@ -1,450 +1,146 @@
-# Library Excel Data Cleaning Activity
+# Research Metadata Cleanup Pipeline
 
-## Description
+A suite of Python scripts to clean and standardise Excel exports from the institutional repository (EPrints) before upload.
 
-This repository contains Python scripts developed to support the cleansing and standardisation of metadata exported from the Manchester Metropolitan University (MMU) Research Repository.
+The pipeline handles three separate tasks:
 
-The project addresses a series of data quality tasks involving event records, publication metadata, and publisher name authority control. The scripts automate filtering, standardisation, and quality assurance processes to improve metadata consistency and prepare records for downstream reporting and analysis.
-
----
-
-## Project Objectives
-
-The repository was created to address the following data-cleaning activities.
-
-### Task 1 – Event Date Standardisation
-
-**Source file:** `metadata_extract_20260127.xlsx`
-
-**Requirements**
-
-1. Filter records where `eprints_type` contains:
-
-   * `conference_item`
-   * `exhibition`
-   * `performance`
-
-2. Analyse and standardise the following date fields:
-
-   * `event_dates_start`
-   * `event_dates_end`
-
-3. Convert date values into a consistent format.
-
-**Chosen standard format**
-
-```text
-DD-MM-YYYY
-```
-
-Examples:
-
-```text
-01-03-2024
-15-10-2025
-```
+1. **Date standardisation** – converts event dates to `DD‑MM‑YYYY` for conference items, exhibitions, and performances.  
+2. **Publisher name standardisation** – merges variant publisher names using fuzzy matching and hard‑coded mappings.  
+3. **Author name standardisation** – analyses first and last names using staff IDs (where available) and fuzzy matching to identify duplicates.
 
 ---
 
-### Task 2 – Publisher Name Standardisation
-
-**Source file:** `metadata_extract_20260127.xlsx`
-
-**Requirements**
-
-1. Filter records where `eprints_type` contains:
-
-   * `article`
-   * `conference_item`
-
-2. Analyse publisher name variants in the `publisher` field.
-
-3. Develop a methodology for publisher authority control and standardisation.
-
----
-
-### Task 3 – Author Name Standardisation (Methodology Proposal)
-
-**Source file:** `authors_20260127_WorkingFile.xlsx`
-
-**Requirements**
-
-Analyse:
-
-* `first_name`
-* `last_name`
-
-Use the staff identifier (`id`) where available to assist in duplicate detection and identity resolution.
-
-The objective is to identify potential duplicate author records and create a review process for manual validation where confidence is low.
-
-**Note:** This repository currently contains implemented solutions for Tasks 1 and 2. Task 3 remains a proposed methodology and has not yet been implemented as a script.
-
----
-
-# Repository Structure
-
-```text
-library_excel_data_cleaning_activity/
+## 📂 Project Structure
+research-data-cleanup/
+├── app.py # Streamlit UI – launch this for interactive use
+├── config.py # Centralised settings (thresholds, paths)
+├── pyproject.toml # Package metadata (optional)
+├── requirements.txt # Python dependencies
+├── .gitignore # Files/folders to ignore in Git
+├── README.md # This file
 │
-├── Inputs/
-│   ├── metadata_extract_20260127.xlsx
-│   └── authors_20260127_WorkingFile.xlsx
-│
-├── Outputs/
-│   ├── metadata_extract_20260127_filtered_task_one_activity_one.xlsx
-│   ├── metadata_extract_20260127_standardised_dates_activity_one_task_two.xlsx
-│   ├── metadata_extract_20260127_filtered_task_two_activity_one.xlsx
-│   ├── metadata_extract_20260127_publishers_cleaned.xlsx
-│   ├── publisher_review_index.xlsx
-│   └── publisher_cluster_summary.csv
-│
-├── value_filtering_task_one_activity_one.py
 ├── date_standardisation_task_one_activity_two.py
-├── value_filtering_task_two_activity_one.py
-├── publisher_name_standardisation_task_two_activity_two.py
+├── publisher_name_standardisation_task_two_activity_one.py
+├── author_name_standardisation_task_three_activity_one.py
 │
-├── dates_standardsation_error_log.txt
-└── publisher_standardisation.log
-```
+├── inputs/ # Place your input Excel files here
+│ └── metadata_extract_20260127.xlsx
+│ └── authors_20260127_WorkingFile.xlsx
+│
+├── Outputs/ # All generated outputs are saved here
+│ ├── metadata_final_cleaned.xlsx
+│ ├── publisher_review_index.xlsx
+│ ├── publisher_cluster_summary.csv
+│ ├── author_review_index.xlsx
+│ ├── author_cluster_summary.csv
+│ └── *.log # Log files for each task
+│
+└── DeadFiles/ # Archived/obsolete files (ignored by Git)
+└── (old scripts, exploratory files)
+
+text
 
 ---
 
-# System Requirements
+## ⚙️ Setup
 
-## Python Version
+### Prerequisites
 
-Developed using:
+- Python **3.8** or higher
+- A virtual environment (recommended)
 
-```text
-Python 3.14.5
-```
-
-## Required Packages
-
-Install dependencies using:
+### Install dependencies
 
 ```bash
-pip install pandas openpyxl python-dateutil rapidfuzz
-```
+# Create and activate a virtual environment
+python -m venv venv
+venv\Scripts\activate      # Windows
+source venv/bin/activate   # macOS/Linux
 
-### Package Usage
+# Install required packages
+pip install --upgrade pip
+pip install -r requirements.txt
+Configuration
+Adjust settings in config.py if needed:
 
-| Package         | Purpose                                             |
-| --------------- | --------------------------------------------------- |
-| pandas          | Reading, filtering and transforming Excel data      |
-| openpyxl        | Excel file handling and workbook preservation       |
-| python-dateutil | Flexible date parsing                               |
-| rapidfuzz       | Fuzzy string matching for publisher standardisation |
+SIMILARITY_THRESHOLD_AUTO – high‑confidence auto‑merge threshold (default 85)
 
----
+SIMILARITY_THRESHOLD_REVIEW – lower bound for review (default 65)
 
-# Script Documentation
+FREQ_RATIO_FOR_AUTO – frequency ratio for auto‑merge (default 3)
 
-## 1. value_filtering_task_one_activity_one.py
+AUTHOR_SIMILARITY_THRESHOLD_AUTO – for author matching (default 85)
 
-### Purpose
+AUTHOR_SIMILARITY_THRESHOLD_REVIEW – for author review (default 75)
 
-Filters repository metadata to retain only event-related outputs.
+🚀 Usage
+You can run the pipeline in two ways:
 
-### Accepted Record Types
+Option A – Interactive UI (recommended for non‑coders)
+bash
+streamlit run app.py
+A browser tab will open. Upload your files and choose which tasks to run.
 
-* conference_item
-* exhibition
-* performance
+Metadata Cleanup – expects metadata_extract_*.xlsx; runs dates then publishers.
 
-### Processing Workflow
+Author Name Cleanup – expects authors_*.xlsx; runs author standardisation separately.
 
-1. Read metadata extract into a Pandas DataFrame.
-2. Filter records using `isin()`.
-3. Validate results by printing sample records and record count.
-4. Export filtered records to a new Excel file.
+The UI provides live logs as each script runs, showing progress and any warnings in real time. This is especially useful for long‑running tasks like author name standardisation.
 
-### Output
+Option B – Command‑line (individual scripts)
+Each script accepts --input and --output arguments:
 
-```text
-Outputs/metadata_extract_20260127_filtered_task_one_activity_one.xlsx
-```
+Dates
+bash
+python date_standardisation_task_one_activity_two.py --input inputs/metadata_extract_20260127.xlsx --output Outputs/dates_cleaned.xlsx
+Publishers
+bash
+python publisher_name_standardisation_task_two_activity_one.py --input Outputs/dates_cleaned.xlsx --output Outputs/publishers_cleaned.xlsx --review Outputs/publisher_review_index.xlsx --clusters Outputs/publisher_cluster_summary.csv
+Authors
+bash
+python author_name_standardisation_task_three_activity_one.py --input inputs/authors_20260127_WorkingFile.xlsx --output Outputs/authors_cleaned.xlsx --review Outputs/author_review_index.xlsx --clusters Outputs/author_cluster_summary.csv
+You can also pass an optional --override file (CSV/Excel) to force‑merge or keep specific pairs.
 
----
+📥 Outputs
+File	Description
+metadata_final_cleaned.xlsx	Original metadata with standardised dates and publisher names
+publisher_review_index.xlsx	Pairs of publisher names that need human judgement
+publisher_cluster_summary.csv	Shows how publisher variants were grouped and the chosen canonical name
+authors_cleaned.xlsx	Original authors file with additional columns for standardised first/last names
+author_review_index.xlsx	Pairs of author records needing human validation. Includes resource_id, id, similarity, freq_1/2, same_id flag, and a suggested action (Merge or Review)
+author_cluster_summary.csv	Shows how author records were grouped into clusters
+All output files preserve the original Excel styling (fonts, colours, column widths, formulas).
 
-## 2. date_standardisation_task_one_activity_two.py
+🛠️ Troubleshooting
+Excel warning: “Removed Records: Formula from /xl/worksheets/sheet1.xml”
+This is caused by Excel formulas that openpyxl cannot fully preserve. The data is not affected.
 
-### Purpose
+Fix: All scripts now use data_only=True when loading workbooks, so formulas are converted to static values. If you still see the warning, you can safely ignore it – the content is correct.
 
-Standardises event dates into a consistent format.
+Author script seems to take a long time
+The author script performs pairwise fuzzy matching on up to 117,000 rows. This is computationally intensive. On a typical machine, it completes in about 10–15 minutes for the full dataset. The UI shows live logs so you can monitor progress. You can also run a sample first to test logic before running the full file.
 
-### Input
+“ModuleNotFoundError” when running
+Make sure all dependencies are installed:
 
-```text
-Outputs/metadata_extract_20260127_filtered_task_one_activity_one.xlsx
-```
+bash
+pip install -r requirements.txt
+File paths not found
+Always use absolute paths or run scripts from the root folder. The UI handles temporary files automatically.
 
-### Target Fields
+🤝 Contributing
+Use a virtual environment (venv) for development.
 
-* event_dates_start
-* event_dates_end
+Follow the existing folder structure.
 
-### Methodology
+Add clear comments in your code.
 
-#### Primary Parsing
+Update this README.md when adding new functionality.
 
-Uses:
+Run black or ruff to format code (optional).
 
-```python
-pd.to_datetime()
-```
+📄 License
+This project is provided under the MIT License
 
-with:
-
-* day-first parsing
-* strict validation
-* year range checking
-
-#### Secondary Parsing
-
-Uses:
-
-```python
-dateutil.parser.parse()
-```
-
-with additional cleaning to remove ordinal suffixes such as:
-
-```text
-1st
-2nd
-3rd
-4th
-```
-
-before attempting conversion.
-
-#### Validation Rules
-
-Dates are rejected when:
-
-* Year < 1900
-* Year > 2025
-* Value cannot be parsed
-
-### Error Handling
-
-Invalid dates are recorded in:
-
-```text
-dates_standardsation_error_log.txt
-```
-
-This supports manual review of problematic records.
-
-### Output
-
-```text
-Outputs/metadata_extract_20260127_standardised_dates_activity_one_task_two.xlsx
-```
-
----
-
-## 3. value_filtering_task_two_activity_one.py
-
-### Purpose
-
-Filters publication metadata prior to publisher standardisation.
-
-### Accepted Record Types
-
-* article
-* conference_item
-
-### Processing Workflow
-
-1. Read metadata extract.
-2. Filter publication records using `isin()`.
-3. Export filtered dataset.
-
-### Output
-
-```text
-Outputs/metadata_extract_20260127_filtered_task_two_activity_one.xlsx
-```
-
----
-
-## 4. publisher_name_standardisation_task_two_activity_two.py
-
-### Purpose
-
-Standardises publisher names through a combination of authority control rules and fuzzy matching techniques.
-
-### Methodology
-
-The standardisation process consists of five stages.
-
-### Stage 1 – Hard-Coded Canonical Mapping
-
-Known publisher variants are automatically normalised.
-
-Examples include:
-
-| Variant            | Canonical Form                                           |
-| ------------------ | -------------------------------------------------------- |
-| Taylor and Francis | Taylor & Francis                                         |
-| IEEE               | Institute of Electrical and Electronics Engineers (IEEE) |
-| BMC                | BioMed Central                                           |
-| Elsevier Ltd       | Elsevier                                                 |
-| Springer Nature    | Springer                                                 |
-| Wiley-Blackwell    | Wiley                                                    |
-
----
-
-### Stage 2 – Text Preprocessing
-
-Publisher names are normalised before comparison.
-
-Processing includes:
-
-* Lowercasing
-* Punctuation removal
-* Tokenisation
-* Stop-word removal
-* Normalisation of "&" to "and"
-
-Common publishing terms such as:
-
-```text
-press
-group
-ltd
-limited
-publications
-books
-journal
-association
-foundation
-```
-
-are excluded from similarity calculations.
-
----
-
-### Stage 3 – Fuzzy Matching
-
-The script uses RapidFuzz similarity metrics:
-
-* `ratio()`
-* `token_sort_ratio()`
-
-to identify likely publisher variants.
-
-Examples:
-
-```text
-Elsevier BV
-Elsevier B.V.
-Elsevier
-```
-
-can be recognised as equivalent publisher names.
-
----
-
-### Stage 4 – Cluster Generation
-
-Matched publisher names are grouped into clusters.
-
-For each cluster:
-
-* A canonical publisher name is selected.
-* Frequency statistics are calculated.
-* Variant mappings are recorded.
-
----
-
-### Stage 5 – Manual Review Support
-
-Publisher pairs with uncertain similarity scores are exported for human review rather than automatically merged.
-
-This reduces the risk of incorrect standardisation decisions.
-
----
-
-## Outputs
-
-### Cleaned Metadata File
-
-```text
-Outputs/metadata_extract_20260127_publishers_cleaned.xlsx
-```
-
-Contains a standardised publisher field:
-
-```text
-publisher_standardised
-```
-
-### Review Index
-
-```text
-Outputs/publisher_review_index.xlsx
-```
-
-Contains publisher pairs requiring manual validation.
-
-### Cluster Summary
-
-```text
-Outputs/publisher_cluster_summary.csv
-```
-
-Provides an audit trail of publisher clustering decisions.
-
-### Processing Log
-
-```text
-publisher_standardisation.log
-```
-
-Records processing activity, matching decisions, warnings, and summary statistics.
-
----
-
-# Data Quality Benefits
-
-The workflow improves metadata quality by:
-
-* Removing irrelevant records.
-* Standardising event date formats.
-* Reducing publisher name duplication.
-* Supporting authority control practices.
-* Providing audit trails for review and validation.
-* Improving consistency for reporting and analytics.
-
----
-
-# Future Enhancements
-
-Potential future developments include:
-
-* Author name standardisation implementation.
-* Duplicate author detection.
-* ORCID-based identity resolution.
-* DOI validation.
-* Configurable publisher authority files.
-* Automated quality assurance reporting.
-* Unit testing and continuous integration workflows.
-
----
-
-## Author
-
-Library Metadata Data Cleaning Activity
-
-A Python-based workflow for research metadata cleansing, standardisation, and quality assurance.
-
-
-
-
-
-
-
+📬 Contact
+For questions or support, please contact the Digital Library Services Team.

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.env/
+
+# Outputs (generated files)
+Outputs/
+*.xlsx
+*.csv
+*.log
+
+# redundant files
+DeadFiles/
+
+# Streamlit
+.streamlit/
+
+# OS junk
+.DS_Store
+Thumbs.db
