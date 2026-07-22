@@ -170,7 +170,32 @@ with tab_metadata:
             cluster_path = str(BASE_DIR / "Outputs" / "publisher_cluster_summary.csv")
 
             # --------------------------------------------------------
-            # Step 1: Date standardisation – with live logs
+            # Step 0: Filter metadata to relevant rows
+            # --------------------------------------------------------
+            progress_bar.progress(10, text="Filtering metadata...")
+            status_text.info("⏳ Filtering rows for date and publisher tasks...")
+
+            filtered_path = os.path.join(
+                tempfile.gettempdir(), "metadata_filtered.xlsx"
+            )
+            cmd_filter = [
+                sys.executable,
+                str(BASE_DIR / "filter_metadata.py"),
+                "--input",
+                input_path,
+                "--output",
+                filtered_path,
+            ]
+            result_filter = subprocess.run(cmd_filter, capture_output=True, text=True)
+
+            if result_filter.returncode != 0:
+                st.error(f"❌ Filtering failed:\n{result_filter.stderr}")
+                st.stop()
+
+            st.success("✅ Filtering complete.")
+
+            # --------------------------------------------------------
+            # Step 1: Date standardisation (use filtered_path as input)
             # --------------------------------------------------------
             progress_bar.progress(20, text="Step 1/2: Standardising event dates...")
             status_text.info("⏳ Processing date fields...")
@@ -179,10 +204,11 @@ with tab_metadata:
                 sys.executable,
                 str(SCRIPT_MAP["dates"]),
                 "--input",
-                input_path,
+                filtered_path,  # <-- use filtered file
                 "--output",
                 interim_path,
             ]
+            # ... rest remains the same
 
             returncode1, _ = run_with_live_output(cmd1, log_placeholder, "📅 Date log:")
 

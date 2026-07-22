@@ -1,0 +1,230 @@
+2026-07-22 10:00:38,895 - INFO - ======================================================================
+2026-07-22 10:00:38,895 - INFO - Author Name Standardisation Pipeline
+2026-07-22 10:00:38,895 - INFO - ======================================================================
+2026-07-22 10:00:38,896 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpq0h0fuuz.xlsx
+2026-07-22 10:00:38,896 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 10:00:38,896 - INFO - Review: Outputs/author_review_index.xlsx
+2026-07-22 10:00:38,896 - INFO - Clusters: Outputs/author_cluster_summary.csv
+2026-07-22 10:00:42,218 - INFO - Loaded 117130 rows
+2026-07-22 10:00:42,218 - INFO - Preprocessing names...
+2026-07-22 10:00:43,570 - INFO - Using 'id' column for initial grouping...
+2026-07-22 10:00:45,448 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 10:00:45,448 - INFO - Applying fuzzy matching...
+2026-07-22 10:03:41,193 - INFO - Auto-edges: 940801
+2026-07-22 10:03:41,193 - INFO - Review pairs: 505435
+2026-07-22 10:05:03,892 - INFO - Saving cleaned workbook...
+2026-07-22 10:05:22,461 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 10:06:12,230 - INFO - Review file saved: Outputs/author_review_index.xlsx
+2026-07-22 10:06:12,278 - INFO - Cluster summary saved: Outputs/author_cluster_summary.csv
+2026-07-22 10:06:12,278 - INFO - ======================================================================
+2026-07-22 10:06:12,278 - INFO - SUMMARY
+2026-07-22 10:06:12,278 - INFO - Total rows processed: 117130
+2026-07-22 10:06:12,278 - INFO - Unique IDs used for grouping: 1922
+2026-07-22 10:06:12,279 - INFO - Clusters formed: 14529
+2026-07-22 10:06:12,280 - INFO - Review pairs: 505435
+2026-07-22 10:06:12,280 - INFO - ======================================================================
+2026-07-22 10:06:28,378 - INFO - ======================================================================
+2026-07-22 10:06:28,378 - INFO - Author Name Standardisation Pipeline
+2026-07-22 10:06:28,378 - INFO - ======================================================================
+2026-07-22 10:06:28,378 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpx9bnddmb.xlsx
+2026-07-22 10:06:28,378 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 10:06:32,203 - INFO - Loaded 117130 rows
+2026-07-22 10:06:32,203 - INFO - Preprocessing names...
+2026-07-22 10:06:34,072 - INFO - Using 'id' column for initial grouping...
+2026-07-22 10:06:36,260 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 10:06:36,260 - INFO - Applying fuzzy matching...
+2026-07-22 10:08:17,453 - INFO - ======================================================================
+2026-07-22 10:08:17,454 - INFO - Author Name Standardisation Pipeline
+2026-07-22 10:08:17,454 - INFO - ======================================================================
+2026-07-22 10:08:17,454 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpfscc3b2n.xlsx
+2026-07-22 10:08:17,454 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 10:08:20,812 - INFO - Loaded 117130 rows
+2026-07-22 10:08:20,812 - INFO - Preprocessing names...
+2026-07-22 10:08:22,228 - INFO - Using 'id' column for initial grouping...
+2026-07-22 10:08:24,003 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 10:08:24,003 - INFO - Applying fuzzy matching...
+2026-07-22 10:09:44,214 - INFO - Auto-edges: 940801
+2026-07-22 10:09:44,214 - INFO - Review pairs: 505435
+2026-07-22 10:09:59,200 - INFO - Saving cleaned workbook...
+2026-07-22 10:10:12,896 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 10:10:58,559 - INFO - ======================================================================
+2026-07-22 10:10:58,559 - INFO - Author Name Standardisation Pipeline
+2026-07-22 10:10:58,559 - INFO - ======================================================================
+2026-07-22 10:10:58,559 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmplyvy52eu.xlsx
+2026-07-22 10:10:58,559 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 10:11:01,876 - INFO - Loaded 117130 rows
+2026-07-22 10:11:01,876 - INFO - Preprocessing names...
+2026-07-22 10:11:03,315 - INFO - Using 'id' column for initial grouping...
+2026-07-22 10:11:05,332 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 10:11:05,332 - INFO - Applying fuzzy matching...
+2026-07-22 10:14:00,604 - INFO - Auto-edges: 940801
+2026-07-22 10:14:00,604 - INFO - Review pairs: 505435
+2026-07-22 10:14:15,660 - INFO - Saving cleaned workbook...
+2026-07-22 10:14:28,525 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 10:15:25,418 - INFO - Review file saved: Outputs/author_review_index.xlsx
+2026-07-22 10:15:25,467 - INFO - Cluster summary saved: Outputs/author_cluster_summary.csv
+2026-07-22 10:15:25,467 - INFO - ======================================================================
+2026-07-22 10:15:25,467 - INFO - SUMMARY
+2026-07-22 10:15:25,468 - INFO - Total rows processed: 117130
+2026-07-22 10:15:25,468 - INFO - Unique IDs used for grouping: 1922
+2026-07-22 10:15:25,469 - INFO - Clusters formed: 14529
+2026-07-22 10:15:25,469 - INFO - Review pairs: 505435
+2026-07-22 10:15:25,469 - INFO - ======================================================================
+2026-07-22 11:29:41,992 - INFO - ======================================================================
+2026-07-22 11:29:41,993 - INFO - Author Name Standardisation Pipeline
+2026-07-22 11:29:41,995 - INFO - ======================================================================
+2026-07-22 11:29:41,996 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpdgrn98og.xlsx
+2026-07-22 11:29:41,998 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 11:29:45,246 - INFO - Loaded 117130 rows
+2026-07-22 11:29:45,246 - INFO - Preprocessing names...
+2026-07-22 11:29:46,691 - INFO - Using 'id' column for initial grouping...
+2026-07-22 11:29:48,579 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 11:29:48,579 - INFO - Applying fuzzy matching...
+2026-07-22 11:32:41,210 - INFO - Auto-edges: 940801
+2026-07-22 11:32:41,210 - INFO - Review pairs: 505435
+2026-07-22 11:32:55,905 - INFO - Saving cleaned workbook...
+2026-07-22 11:33:08,978 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 11:34:02,539 - INFO - Review file saved: Outputs/author_review_index.xlsx
+2026-07-22 11:34:02,586 - INFO - Cluster summary saved: Outputs/author_cluster_summary.csv
+2026-07-22 11:34:02,586 - INFO - ======================================================================
+2026-07-22 11:34:02,586 - INFO - SUMMARY
+2026-07-22 11:34:02,586 - INFO - Total rows processed: 117130
+2026-07-22 11:34:02,586 - INFO - Unique IDs used for grouping: 1922
+2026-07-22 11:34:02,589 - INFO - Clusters formed: 14529
+2026-07-22 11:34:02,589 - INFO - Review pairs: 505435
+2026-07-22 11:34:02,590 - INFO - ======================================================================
+2026-07-22 11:38:04,105 - INFO - ======================================================================
+2026-07-22 11:38:04,105 - INFO - Author Name Standardisation Pipeline
+2026-07-22 11:38:04,105 - INFO - ======================================================================
+2026-07-22 11:38:04,105 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpg8_dcv8n.xlsx
+2026-07-22 11:38:04,105 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 11:38:07,338 - INFO - Loaded 117130 rows
+2026-07-22 11:38:07,339 - INFO - Preprocessing names...
+2026-07-22 11:38:08,718 - INFO - Using 'id' column for initial grouping...
+2026-07-22 11:38:10,598 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 11:38:10,598 - INFO - Applying fuzzy matching...
+2026-07-22 11:41:02,993 - INFO - Auto-edges: 940801
+2026-07-22 11:41:02,993 - INFO - Review pairs: 505435
+2026-07-22 11:41:16,729 - INFO - Saving cleaned workbook...
+2026-07-22 11:41:29,609 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 11:42:22,363 - INFO - Review file saved: Outputs/author_review_index.xlsx
+2026-07-22 11:42:22,410 - INFO - Cluster summary saved: Outputs/author_cluster_summary.csv
+2026-07-22 11:42:22,410 - INFO - ======================================================================
+2026-07-22 11:42:22,410 - INFO - SUMMARY
+2026-07-22 11:42:22,410 - INFO - Total rows processed: 117130
+2026-07-22 11:42:22,410 - INFO - Unique IDs used for grouping: 1922
+2026-07-22 11:42:22,412 - INFO - Clusters formed: 14529
+2026-07-22 11:42:22,412 - INFO - Review pairs: 505435
+2026-07-22 11:42:22,412 - INFO - ======================================================================
+2026-07-22 12:04:44,808 - INFO - ======================================================================
+2026-07-22 12:04:44,809 - INFO - Author Name Standardisation Pipeline
+2026-07-22 12:04:44,809 - INFO - ======================================================================
+2026-07-22 12:04:44,809 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmprrjilzub.xlsx
+2026-07-22 12:04:44,809 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 12:04:48,089 - INFO - Loaded 117130 rows
+2026-07-22 12:04:48,090 - INFO - Preprocessing names...
+2026-07-22 12:04:49,443 - INFO - Using 'id' column for initial grouping...
+2026-07-22 12:04:51,241 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 12:04:51,242 - INFO - Applying fuzzy matching...
+2026-07-22 12:07:48,167 - INFO - Auto-edges: 940801
+2026-07-22 12:07:48,167 - INFO - Review pairs: 505435
+2026-07-22 12:08:02,863 - INFO - Saving cleaned workbook...
+2026-07-22 12:08:15,458 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 12:09:09,009 - INFO - Review file saved: Outputs/author_review_index.xlsx
+2026-07-22 12:09:09,059 - INFO - Cluster summary saved: Outputs/author_cluster_summary.csv
+2026-07-22 12:09:09,059 - INFO - ======================================================================
+2026-07-22 12:09:09,059 - INFO - SUMMARY
+2026-07-22 12:09:09,059 - INFO - Total rows processed: 117130
+2026-07-22 12:09:09,059 - INFO - Unique IDs used for grouping: 1922
+2026-07-22 12:09:09,061 - INFO - Clusters formed: 14529
+2026-07-22 12:09:09,061 - INFO - Review pairs: 505435
+2026-07-22 12:09:09,061 - INFO - ======================================================================
+2026-07-22 12:39:30,802 - INFO - ======================================================================
+2026-07-22 12:39:30,804 - INFO - Author Name Standardisation Pipeline
+2026-07-22 12:39:30,806 - INFO - ======================================================================
+2026-07-22 12:39:30,808 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpao2hsx_f.xlsx
+2026-07-22 12:39:30,810 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 12:39:34,388 - INFO - Loaded 117130 rows
+2026-07-22 12:39:34,388 - INFO - Preprocessing names...
+2026-07-22 12:39:35,790 - INFO - Using 'id' column for initial grouping...
+2026-07-22 12:39:37,699 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 12:39:37,699 - INFO - Applying fuzzy matching...
+2026-07-22 12:41:56,857 - INFO - ======================================================================
+2026-07-22 12:41:56,857 - INFO - Author Name Standardisation Pipeline
+2026-07-22 12:41:56,857 - INFO - ======================================================================
+2026-07-22 12:41:56,857 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpx9ur79tb.xlsx
+2026-07-22 12:41:56,857 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 12:42:00,104 - INFO - Loaded 117130 rows
+2026-07-22 12:42:00,105 - INFO - Preprocessing names...
+2026-07-22 12:42:01,693 - INFO - Using 'id' column for initial grouping...
+2026-07-22 12:42:03,427 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 12:42:03,428 - INFO - Applying fuzzy matching...
+2026-07-22 12:45:11,029 - INFO - Auto-edges: 940804
+2026-07-22 12:45:11,029 - INFO - Review pairs: 505459
+2026-07-22 12:45:25,247 - INFO - Saving cleaned workbook...
+2026-07-22 12:45:39,998 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 12:51:49,477 - INFO - ======================================================================
+2026-07-22 12:51:49,477 - INFO - Author Name Standardisation Pipeline
+2026-07-22 12:51:49,478 - INFO - ======================================================================
+2026-07-22 12:51:49,478 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpq64tz5iw.xlsx
+2026-07-22 12:51:49,478 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 12:51:52,706 - INFO - Loaded 117130 rows
+2026-07-22 12:51:52,706 - INFO - Preprocessing names...
+2026-07-22 12:51:54,114 - INFO - Using 'id' column for initial grouping...
+2026-07-22 12:51:55,832 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 12:51:55,832 - INFO - Applying fuzzy matching...
+2026-07-22 12:54:57,687 - INFO - Auto-edges: 940804
+2026-07-22 12:54:57,687 - INFO - Review pairs: 505459
+2026-07-22 12:55:12,088 - INFO - Saving cleaned workbook...
+2026-07-22 12:55:26,861 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 12:59:23,878 - INFO - ======================================================================
+2026-07-22 12:59:23,879 - INFO - Author Name Standardisation Pipeline
+2026-07-22 12:59:23,880 - INFO - ======================================================================
+2026-07-22 12:59:23,880 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmphvdy9y6c.xlsx
+2026-07-22 12:59:23,880 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 12:59:27,288 - INFO - Loaded 117130 rows
+2026-07-22 12:59:27,289 - INFO - Preprocessing names...
+2026-07-22 12:59:28,569 - INFO - Using 'id' column for initial grouping...
+2026-07-22 12:59:30,273 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 12:59:30,274 - INFO - Applying fuzzy matching...
+2026-07-22 13:02:28,046 - INFO - Auto-edges: 940804
+2026-07-22 13:02:28,046 - INFO - Review pairs: 505459
+2026-07-22 13:02:41,879 - INFO - Saving cleaned workbook...
+2026-07-22 13:02:56,674 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 13:26:23,453 - INFO - Review file saved: C:\Users\55124152\OneDrive - MMU\DLS\library_excel_data_cleaning_activity\Outputs\author_review_index.xlsx
+2026-07-22 13:26:23,502 - INFO - Cluster summary saved: C:\Users\55124152\OneDrive - MMU\DLS\library_excel_data_cleaning_activity\Outputs\author_cluster_summary.csv
+2026-07-22 13:26:23,502 - INFO - ======================================================================
+2026-07-22 13:26:23,502 - INFO - SUMMARY
+2026-07-22 13:26:23,502 - INFO - Total rows processed: 117130
+2026-07-22 13:26:23,502 - INFO - Unique IDs used for grouping: 1922
+2026-07-22 13:26:23,504 - INFO - Clusters formed: 14530
+2026-07-22 13:26:23,504 - INFO - Review pairs: 505459
+2026-07-22 13:26:23,504 - INFO - ======================================================================
+2026-07-22 14:10:33,919 - INFO - ======================================================================
+2026-07-22 14:10:33,923 - INFO - Author Name Standardisation Pipeline
+2026-07-22 14:10:33,926 - INFO - ======================================================================
+2026-07-22 14:10:33,928 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmp6a5bj44y.xlsx
+2026-07-22 14:10:33,930 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 14:10:36,407 - INFO - ======================================================================
+2026-07-22 14:10:36,408 - INFO - Author Name Standardisation Pipeline
+2026-07-22 14:10:36,408 - INFO - ======================================================================
+2026-07-22 14:10:36,409 - INFO - Input: C:\Users\55124152\AppData\Local\Temp\tmpmz369mpj.xlsx
+2026-07-22 14:10:36,410 - INFO - Output: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 14:10:54,953 - INFO - Loaded 117130 rows
+2026-07-22 14:10:54,954 - INFO - Preprocessing names...
+2026-07-22 14:10:55,754 - INFO - Loaded 117130 rows
+2026-07-22 14:10:55,755 - INFO - Preprocessing names...
+2026-07-22 14:11:06,071 - INFO - Using 'id' column for initial grouping...
+2026-07-22 14:11:06,710 - INFO - Using 'id' column for initial grouping...
+2026-07-22 14:11:25,954 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 14:11:25,955 - INFO - Applying fuzzy matching...
+2026-07-22 14:11:26,660 - INFO - Auto-merged 403208 pairs using ID
+2026-07-22 14:11:26,661 - INFO - Applying fuzzy matching...
+2026-07-22 14:28:47,323 - INFO - Auto-edges: 940804
+2026-07-22 14:28:47,324 - INFO - Review pairs: 505459
+2026-07-22 14:28:48,166 - INFO - Auto-edges: 940804
+2026-07-22 14:28:48,167 - INFO - Review pairs: 505459
+2026-07-22 14:29:02,796 - INFO - Saving cleaned workbook...
+2026-07-22 14:29:03,712 - INFO - Saving cleaned workbook...
+2026-07-22 14:29:18,901 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx
+2026-07-22 14:29:19,742 - INFO - Cleaned file saved: C:\Users\55124152\AppData\Local\Temp\authors_cleaned.xlsx

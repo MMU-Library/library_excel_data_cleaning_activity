@@ -8,11 +8,6 @@ venv/
 env/
 .env/
 
-# Outputs (generated files)
-Outputs/
-*.xlsx
-*.csv
-*.log
 
 # redundant files
 DeadFiles/
