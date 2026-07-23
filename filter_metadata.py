@@ -28,6 +28,9 @@ def filter_metadata(input_file):
     """Read raw metadata, filter to separate date and publisher files."""
     df = pd.read_excel(input_file, engine="openpyxl")
 
+    # Add original_index based on the current DataFrame index (0‑based row number)
+    df["original_index"] = df.index
+
     # Find the eprints_type column (case‑insensitive)
     eprint_col = find_column(df, "eprints_type")
     if eprint_col is None:
@@ -38,16 +41,10 @@ def filter_metadata(input_file):
     # Date filter: conference_item, exhibition, performance
     date_types = ["conference_item", "exhibition", "performance"]
     df_dates = df[df[eprint_col].isin(date_types)].copy()
-    df_dates = df_dates.reset_index(drop=False).rename(
-        columns={"index": "original_index"}
-    )
 
     # Publisher filter: article, conference_item
     pub_types = ["article", "conference_item"]
     df_publishers = df[df[eprint_col].isin(pub_types)].copy()
-    df_publishers = df_publishers.reset_index(drop=False).rename(
-        columns={"index": "original_index"}
-    )
 
     # Create Outputs directory
     output_dir = Path("Outputs")
@@ -68,7 +65,6 @@ def filter_metadata(input_file):
     # Save combined filtered file (for backwards compatibility)
     all_types = date_types + pub_types
     df_all = df[df[eprint_col].isin(all_types)].copy()
-    df_all = df_all.reset_index(drop=False).rename(columns={"index": "original_index"})
     all_output = output_dir / "metadata_filtered.xlsx"
     df_all.to_excel(all_output, index=False, engine="openpyxl")
     print(f"Combined filtered file saved: {all_output}")

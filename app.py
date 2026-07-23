@@ -53,6 +53,10 @@ if "cluster_data" not in st.session_state:
     st.session_state.cluster_data = None
 if "authors_data" not in st.session_state:
     st.session_state.authors_data = None
+if "dates_cleaned_data" not in st.session_state:
+    st.session_state.dates_cleaned_data = None
+if "publishers_cleaned_data" not in st.session_state:
+    st.session_state.publishers_cleaned_data = None
 
 
 # ------------------------------------------------------------
@@ -80,52 +84,52 @@ def run_with_live_output(cmd, placeholder, log_prefix=""):
 
 
 # ------------------------------------------------------------
-# Helper to merge date and publisher results back into original
+# Helper to drop empty columns from a DataFrame
+# ------------------------------------------------------------
+def drop_empty_columns(df):
+    """Remove columns that are completely empty (all NaN or empty strings)."""
+    return df.dropna(axis=1, how="all")
+
+
+# ------------------------------------------------------------
+# Helper to merge results and save with trimmed columns
 # ------------------------------------------------------------
 def merge_results(original_path, dates_path, publishers_path, output_path):
-    """Merge date and publisher standardisation results back into the original dataframe."""
-    # Load dataframes
+    """Merge date and publisher results back into the original dataframe."""
     df_original = pd.read_excel(original_path, engine="openpyxl")
     df_dates = pd.read_excel(dates_path, engine="openpyxl")
     df_publishers = pd.read_excel(publishers_path, engine="openpyxl")
 
-    # Ensure original_index columns exist
-    if "original_index" not in df_dates.columns:
-        df_dates["original_index"] = df_dates.index
-    if "original_index" not in df_publishers.columns:
-        df_publishers["original_index"] = df_publishers.index
+    # Ensure original_index exists
+    for df in [df_dates, df_publishers]:
+        if "original_index" not in df.columns:
+            df["original_index"] = df.index
 
-    # Create a copy of original to update
     df_merged = df_original.copy()
 
-    # Update dates for rows that are in the dates file
-    for idx in df_dates["original_index"]:
+    # Update dates
+    for _, row in df_dates.iterrows():
+        idx = row["original_index"]
         if idx in df_merged.index:
-            row_dates = df_dates[df_dates["original_index"] == idx]
-            if not row_dates.empty:
-                if "event_dates_start" in row_dates.columns:
-                    df_merged.at[idx, "event_dates_start"] = row_dates.iloc[0][
-                        "event_dates_start"
-                    ]
-                if "event_dates_end" in row_dates.columns:
-                    df_merged.at[idx, "event_dates_end"] = row_dates.iloc[0][
-                        "event_dates_end"
-                    ]
+            if "event_dates_start" in row and pd.notna(row["event_dates_start"]):
+                df_merged.at[idx, "event_dates_start"] = row["event_dates_start"]
+            if "event_dates_end" in row and pd.notna(row["event_dates_end"]):
+                df_merged.at[idx, "event_dates_end"] = row["event_dates_end"]
 
-    # Update publishers for rows that are in the publishers file
-    for idx in df_publishers["original_index"]:
+    # Update publishers
+    for _, row in df_publishers.iterrows():
+        idx = row["original_index"]
         if idx in df_merged.index:
-            row_pubs = df_publishers[df_publishers["original_index"] == idx]
-            if not row_pubs.empty:
-                # If the publisher script added a standardised column, use that
-                if "publisher_standardised" in row_pubs.columns:
-                    df_merged.at[idx, "publisher"] = row_pubs.iloc[0][
-                        "publisher_standardised"
-                    ]
-                elif "publisher" in row_pubs.columns:
-                    df_merged.at[idx, "publisher"] = row_pubs.iloc[0]["publisher"]
+            if "publisher_standardised" in row and pd.notna(
+                row["publisher_standardised"]
+            ):
+                df_merged.at[idx, "publisher"] = row["publisher_standardised"]
+            elif "publisher" in row and pd.notna(row["publisher"]):
+                df_merged.at[idx, "publisher"] = row["publisher"]
 
-    # Save merged file
+    # Drop any columns that are completely empty
+    df_merged = drop_empty_columns(df_merged)
+
     df_merged.to_excel(output_path, index=False, engine="openpyxl")
     return output_path
 
@@ -193,6 +197,8 @@ with tab_metadata:
         st.session_state.final_data = None
         st.session_state.review_data = None
         st.session_state.cluster_data = None
+        st.session_state.dates_cleaned_data = None
+        st.session_state.publishers_cleaned_data = None
 
         progress_bar = st.progress(0, text="Initialising...")
         status_text = st.empty()
@@ -321,6 +327,30 @@ with tab_metadata:
             with open(final_path, "rb") as f:
                 st.session_state.final_data = f.read()
 
+            # Store dates cleaned file (for separate download)
+            if os.path.exists(interim_dates_path):
+                df_dates_clean = pd.read_excel(interim_dates_path, engine="openpyxl")
+                # Drop empty columns
+                df_dates_clean = drop_empty_columns(df_dates_clean)
+                dates_temp = os.path.join(
+                    tempfile.gettempdir(), "dates_cleaned_download.xlsx"
+                )
+                df_dates_clean.to_excel(dates_temp, index=False, engine="openpyxl")
+                with open(dates_temp, "rb") as f:
+                    st.session_state.dates_cleaned_data = f.read()
+
+            # Store publishers cleaned file (for separate download)
+            if os.path.exists(interim_pubs_path):
+                df_pubs_clean = pd.read_excel(interim_pubs_path, engine="openpyxl")
+                # Drop empty columns
+                df_pubs_clean = drop_empty_columns(df_pubs_clean)
+                pubs_temp = os.path.join(
+                    tempfile.gettempdir(), "publishers_cleaned_download.xlsx"
+                )
+                df_pubs_clean.to_excel(pubs_temp, index=False, engine="openpyxl")
+                with open(pubs_temp, "rb") as f:
+                    st.session_state.publishers_cleaned_data = f.read()
+
             if Path(review_path).exists():
                 with open(review_path, "rb") as f:
                     st.session_state.review_data = f.read()
@@ -335,7 +365,6 @@ with tab_metadata:
             os.unlink(input_path)
             if override_path and os.path.exists(override_path):
                 os.unlink(override_path)
-            # Optionally delete filtered files (they are in Outputs, keep them for reference)
 
             progress_bar.progress(100, text="Metadata cleanup complete!")
             status_text.empty()
@@ -352,14 +381,15 @@ with tab_metadata:
     # --------------------------------------------------------
     if st.session_state.processed_metadata:
         st.divider()
-        st.subheader("📥 Downloads")
+        st.subheader("📥 Downloads – Metadata Cleanup")
 
+        # Row 1: Final file and review files
         col1, col2, col3 = st.columns(3)
 
         with col1:
             if st.session_state.final_data is not None:
                 st.download_button(
-                    label="📥 Final Cleaned Metadata",
+                    label="📥 Final Cleaned Metadata (Full)",
                     data=st.session_state.final_data,
                     file_name="metadata_final_cleaned.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -386,6 +416,32 @@ with tab_metadata:
                     use_container_width=True,
                 )
 
+        # Row 2: Task-specific cleaned files
+        st.markdown(
+            "##### 📂 Task‑Specific Outputs (with original_index for reference)"
+        )
+        col4, col5 = st.columns(2)
+
+        with col4:
+            if st.session_state.dates_cleaned_data is not None:
+                st.download_button(
+                    label="📅 Dates Cleaned (conference_item, exhibition, performance)",
+                    data=st.session_state.dates_cleaned_data,
+                    file_name="dates_cleaned_output.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True,
+                )
+
+        with col5:
+            if st.session_state.publishers_cleaned_data is not None:
+                st.download_button(
+                    label="📚 Publishers Cleaned (article, conference_item)",
+                    data=st.session_state.publishers_cleaned_data,
+                    file_name="publishers_cleaned_output.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True,
+                )
+
         if st.button(
             "🔄 Clear Results", use_container_width=True, key="clear_metadata"
         ):
@@ -394,6 +450,8 @@ with tab_metadata:
                 "final_data",
                 "review_data",
                 "cluster_data",
+                "dates_cleaned_data",
+                "publishers_cleaned_data",
             ]:
                 if key in st.session_state:
                     st.session_state[key] = (
@@ -486,10 +544,8 @@ with tab_authors:
             authors_progress.progress(90, text="Authors processed.")
             st.success("✅ Author standardisation complete.")
 
-            # Small delay to ensure file is written
             time.sleep(1)
 
-            # Check for output file
             output_paths_to_try = [
                 Path(authors_output),
                 BASE_DIR / "Outputs" / "authors_cleaned.xlsx",
