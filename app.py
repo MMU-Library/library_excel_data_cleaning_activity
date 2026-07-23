@@ -15,8 +15,10 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 # ------------------------------------------------------------
@@ -70,12 +72,62 @@ def run_with_live_output(cmd, placeholder, log_prefix=""):
     for line in iter(process.stdout.readline, ""):
         if line:
             output_lines.append(line)
-            # Keep only last 50 lines to avoid slowing down the UI
             if len(output_lines) > 50:
                 output_lines = output_lines[-50:]
             placeholder.text(f"{log_prefix}\n" + "".join(output_lines))
     process.wait()
     return process.returncode, "".join(output_lines)
+
+
+# ------------------------------------------------------------
+# Helper to merge date and publisher results back into original
+# ------------------------------------------------------------
+def merge_results(original_path, dates_path, publishers_path, output_path):
+    """Merge date and publisher standardisation results back into the original dataframe."""
+    # Load dataframes
+    df_original = pd.read_excel(original_path, engine="openpyxl")
+    df_dates = pd.read_excel(dates_path, engine="openpyxl")
+    df_publishers = pd.read_excel(publishers_path, engine="openpyxl")
+
+    # Ensure original_index columns exist
+    if "original_index" not in df_dates.columns:
+        df_dates["original_index"] = df_dates.index
+    if "original_index" not in df_publishers.columns:
+        df_publishers["original_index"] = df_publishers.index
+
+    # Create a copy of original to update
+    df_merged = df_original.copy()
+
+    # Update dates for rows that are in the dates file
+    for idx in df_dates["original_index"]:
+        if idx in df_merged.index:
+            row_dates = df_dates[df_dates["original_index"] == idx]
+            if not row_dates.empty:
+                if "event_dates_start" in row_dates.columns:
+                    df_merged.at[idx, "event_dates_start"] = row_dates.iloc[0][
+                        "event_dates_start"
+                    ]
+                if "event_dates_end" in row_dates.columns:
+                    df_merged.at[idx, "event_dates_end"] = row_dates.iloc[0][
+                        "event_dates_end"
+                    ]
+
+    # Update publishers for rows that are in the publishers file
+    for idx in df_publishers["original_index"]:
+        if idx in df_merged.index:
+            row_pubs = df_publishers[df_publishers["original_index"] == idx]
+            if not row_pubs.empty:
+                # If the publisher script added a standardised column, use that
+                if "publisher_standardised" in row_pubs.columns:
+                    df_merged.at[idx, "publisher"] = row_pubs.iloc[0][
+                        "publisher_standardised"
+                    ]
+                elif "publisher" in row_pubs.columns:
+                    df_merged.at[idx, "publisher"] = row_pubs.iloc[0]["publisher"]
+
+    # Save merged file
+    df_merged.to_excel(output_path, index=False, engine="openpyxl")
+    return output_path
 
 
 # ------------------------------------------------------------
@@ -144,9 +196,10 @@ with tab_metadata:
 
         progress_bar = st.progress(0, text="Initialising...")
         status_text = st.empty()
-        log_placeholder = st.empty()  # For live logs
+        log_placeholder = st.empty()
 
         try:
+            # Save uploaded file to temp
             with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_input:
                 tmp_input.write(uploaded_metadata.getbuffer())
                 input_path = tmp_input.name
@@ -160,8 +213,12 @@ with tab_metadata:
                     tmp_override.write(override_file.getbuffer())
                     override_path = tmp_override.name
 
-            interim_path = os.path.join(
-                tempfile.gettempdir(), "interim_dates_cleaned.xlsx"
+            # Output paths
+            interim_dates_path = os.path.join(
+                tempfile.gettempdir(), "dates_cleaned.xlsx"
+            )
+            interim_pubs_path = os.path.join(
+                tempfile.gettempdir(), "publishers_cleaned.xlsx"
             )
             final_path = os.path.join(tempfile.gettempdir(), "final_cleaned.xlsx")
 
@@ -170,21 +227,16 @@ with tab_metadata:
             cluster_path = str(BASE_DIR / "Outputs" / "publisher_cluster_summary.csv")
 
             # --------------------------------------------------------
-            # Step 0: Filter metadata to relevant rows
+            # Step 0: Filter metadata into separate date and publisher files
             # --------------------------------------------------------
             progress_bar.progress(10, text="Filtering metadata...")
             status_text.info("⏳ Filtering rows for date and publisher tasks...")
 
-            filtered_path = os.path.join(
-                tempfile.gettempdir(), "metadata_filtered.xlsx"
-            )
             cmd_filter = [
                 sys.executable,
                 str(BASE_DIR / "filter_metadata.py"),
                 "--input",
                 input_path,
-                "--output",
-                filtered_path,
             ]
             result_filter = subprocess.run(cmd_filter, capture_output=True, text=True)
 
@@ -193,9 +245,13 @@ with tab_metadata:
                 st.stop()
 
             st.success("✅ Filtering complete.")
+            dates_filtered_path = BASE_DIR / "Outputs" / "metadata_dates_filtered.xlsx"
+            pubs_filtered_path = (
+                BASE_DIR / "Outputs" / "metadata_publishers_filtered.xlsx"
+            )
 
             # --------------------------------------------------------
-            # Step 1: Date standardisation (use filtered_path as input)
+            # Step 1: Date standardisation (using dates‑filtered file)
             # --------------------------------------------------------
             progress_bar.progress(20, text="Step 1/2: Standardising event dates...")
             status_text.info("⏳ Processing date fields...")
@@ -204,12 +260,10 @@ with tab_metadata:
                 sys.executable,
                 str(SCRIPT_MAP["dates"]),
                 "--input",
-                filtered_path,  # <-- use filtered file
+                str(dates_filtered_path),
                 "--output",
-                interim_path,
+                interim_dates_path,
             ]
-            # ... rest remains the same
-
             returncode1, _ = run_with_live_output(cmd1, log_placeholder, "📅 Date log:")
 
             if returncode1 != 0:
@@ -218,10 +272,10 @@ with tab_metadata:
 
             progress_bar.progress(50, text="Step 1 complete. Dates standardised.")
             st.success("✅ Step 1 complete: Dates standardised.")
-            log_placeholder.empty()  # Clear log after step
+            log_placeholder.empty()
 
             # --------------------------------------------------------
-            # Step 2: Publisher name standardisation – with live logs
+            # Step 2: Publisher name standardisation (using publishers‑filtered file)
             # --------------------------------------------------------
             progress_bar.progress(60, text="Step 2/2: Standardising publisher names...")
             status_text.info("⏳ Analysing publisher names...")
@@ -230,9 +284,9 @@ with tab_metadata:
                 sys.executable,
                 str(SCRIPT_MAP["publishers"]),
                 "--input",
-                interim_path,
+                str(pubs_filtered_path),
                 "--output",
-                final_path,
+                interim_pubs_path,
                 "--review",
                 review_path,
                 "--clusters",
@@ -254,7 +308,15 @@ with tab_metadata:
             log_placeholder.empty()
 
             # --------------------------------------------------------
-            # Store results
+            # Step 3: Merge results back into the original file
+            # --------------------------------------------------------
+            progress_bar.progress(95, text="Merging results...")
+            status_text.info("⏳ Combining cleaned fields into final file...")
+
+            merge_results(input_path, interim_dates_path, interim_pubs_path, final_path)
+
+            # --------------------------------------------------------
+            # Store results in session state
             # --------------------------------------------------------
             with open(final_path, "rb") as f:
                 st.session_state.final_data = f.read()
@@ -269,9 +331,11 @@ with tab_metadata:
 
             st.session_state.processed_metadata = True
 
+            # Clean up temp files
             os.unlink(input_path)
             if override_path and os.path.exists(override_path):
                 os.unlink(override_path)
+            # Optionally delete filtered files (they are in Outputs, keep them for reference)
 
             progress_bar.progress(100, text="Metadata cleanup complete!")
             status_text.empty()
@@ -283,6 +347,9 @@ with tab_metadata:
             st.error(f"An unexpected error occurred: {e}")
             st.stop()
 
+    # --------------------------------------------------------
+    # Download buttons for metadata results
+    # --------------------------------------------------------
     if st.session_state.processed_metadata:
         st.divider()
         st.subheader("📥 Downloads")
@@ -378,8 +445,6 @@ with tab_authors:
         log_placeholder = st.empty()
 
         try:
-            import time  # import here for small delay
-
             with tempfile.NamedTemporaryFile(
                 delete=False, suffix=".xlsx"
             ) as tmp_authors:
@@ -421,10 +486,10 @@ with tab_authors:
             authors_progress.progress(90, text="Authors processed.")
             st.success("✅ Author standardisation complete.")
 
-            # --- Small delay to ensure file is flushed ---
+            # Small delay to ensure file is written
             time.sleep(1)
 
-            # --- Check for output file ---
+            # Check for output file
             output_paths_to_try = [
                 Path(authors_output),
                 BASE_DIR / "Outputs" / "authors_cleaned.xlsx",
@@ -445,7 +510,6 @@ with tab_authors:
             else:
                 st.error("❌ Output file not found. Check the logs above for errors.")
                 st.info(f"Expected location: {authors_output}")
-                # Show contents of temp directory for debugging
                 temp_dir = Path(tempfile.gettempdir())
                 xlsx_files = list(temp_dir.glob("*.xlsx"))
                 if xlsx_files:
@@ -488,7 +552,7 @@ with tab_authors:
             st.rerun()
 
 # ------------------------------------------------------------
-# Footer (shown at bottom of both tabs)
+# Footer
 # ------------------------------------------------------------
 st.divider()
 st.caption(

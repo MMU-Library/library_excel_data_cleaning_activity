@@ -78,7 +78,7 @@ You can run the pipeline in two ways:
 
 Option A – Interactive UI (recommended for non‑coders)
 bash
-streamlit run app.py
+streamlit streamlit run app.py
 A browser tab will open. Upload your files and choose which tasks to run.
 
 Metadata Cleanup – expects metadata_extract_*.xlsx; runs dates then publishers.
